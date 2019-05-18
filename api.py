@@ -1,8 +1,7 @@
 ##################################################################
 # 
-# Usage         python3 api.py
-# 
-# References    https://hackernoon.com/learn-blockchains-by-building-one-117428612f46
+# References    blockchain - https://hackernoon.com/learn-blockchains-by-building-one-117428612f46
+#               DSA - https://www.di-mgt.com.au/public-key-crypto-discrete-logs-4-dsa.html
 # 
 ##################################################################
 
@@ -22,7 +21,7 @@ blockchain = Blockchain()
 
 
 def calculate_signature(method, key, sender, recipient, amount):
-    # calculates signature based on chosen method  
+    # calculates signature based on chosen method
 
     if method == 'RSA':
         # TODO: implement RSA
