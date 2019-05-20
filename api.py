@@ -2,37 +2,69 @@
 # 
 # References    blockchain - https://hackernoon.com/learn-blockchains-by-building-one-117428612f46
 #               DSA - https://www.di-mgt.com.au/public-key-crypto-discrete-logs-4-dsa.html
+#               RSA - http://adilmoujahid.com/posts/2018/03/intro-blockchain-bitcoin-python/
 # 
 ##################################################################
 
 
 import hashlib
 import json
+import Crypto.Random
+import binascii
 from textwrap import dedent
 from time import time
-from uuid import uuid4
 from blockchain import Blockchain
 from flask import Flask, jsonify, request
+from Crypto.Hash import SHA
+from Crypto.PublicKey import RSA
+from Crypto.Signature import PKCS1_v1_5
 
 
 app = Flask(__name__)
-node_identifier = str(uuid4()).replace('-', '')
 blockchain = Blockchain()
 
 
 def calculate_signature(method, key, sender, recipient, amount):
     # calculates signature based on chosen method
 
+    msg = {
+        'sender': sender,
+        'recipient': recipient,
+        'amount': amount
+    }
+
     if method == 'RSA':
-        # TODO: implement RSA
-        signature = 'RSA'
+        private_key = RSA.importKey(binascii.unhexlify(key))
+        signer = PKCS1_v1_5.new(private_key)
+        h = SHA.new(str(msg).encode('utf8'))
+        signature = binascii.hexlify(signer.sign(h)).decode('ascii')
     elif method == 'DSA':
         # TODO: implement DSA
         signature = 'DSA'
     else:
-        return 'Invalid signature method', 400
+        return ''
 
     return signature
+
+
+@app.route('/keys/RSA/new', methods=['GET'])
+def make_RSA_keys():
+    # generate a pair of private and public RSA keys
+
+    random_num = Crypto.Random.new().read
+    private_key = RSA.generate(1024, random_num)
+    public_key = private_key.publickey()
+    response = {    
+		'private key': binascii.hexlify(private_key.exportKey(format='DER')).decode('ascii'),
+		'public key': binascii.hexlify(public_key.exportKey(format='DER')).decode('ascii')
+    }
+    return jsonify(response), 200
+
+
+@app.route('/keys/DSA/new', methods=['GET'])
+def make_DSA_keys():
+    # generate a pair of private and public DSA keys
+    pass
 
 
 @app.route('/mine', methods=['GET'])
@@ -45,8 +77,9 @@ def mine():
 
     blockchain.new_transaction(
         sender='0',
-        recipient=node_identifier,
+        recipient=blockchain.node_id,
         amount=1,
+        method=None,
         signature=None,
     )
 
@@ -76,8 +109,10 @@ def new_transaction():
         return 'Missing values', 400
 
     signature = calculate_signature(values['method'], values['key'],values['sender'], values['recipient'], values['amount'])
-
-    index = blockchain.new_transaction(values['sender'], values['recipient'], values['amount'], signature)
+    if signature == '':
+        return 'Invalid signature method', 400
+    
+    index = blockchain.new_transaction(values['sender'], values['recipient'], values['amount'], method, signature)
 
     response = {'message': f'Transaction will be added to Block {index}'}
     return jsonify(response), 201

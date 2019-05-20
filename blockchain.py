@@ -33,8 +33,13 @@
 import hashlib
 import json
 import requests
+import binascii
 from time import time
 from urllib.parse import urlparse
+from Crypto.PublicKey import RSA
+from uuid import uuid4
+from Crypto.Hash import SHA
+from Crypto.Signature import PKCS1_v1_5
 
 
 class Blockchain(object):
@@ -43,6 +48,7 @@ class Blockchain(object):
         self.current_transactions = []
         self.new_block(previous_hash=1, proof=100)
         self.nodes = set()
+        self.node_id = str(uuid4()).replace('-', '')
 
 
     def new_block(self, proof, previous_hash=None):
@@ -63,10 +69,10 @@ class Blockchain(object):
         return block    
 
 
-    def new_transaction(self, sender, recipient, amount, signature):
+    def new_transaction(self, sender, recipient, amount, method, signature):
         # adds a new transaction to the list of transactions
 
-        if self.verify_signature(sender, recipient, amount, signature) or signature == None:
+        if signature == None or self.verify_signature(sender, recipient, amount, method, signature):
             self.current_transactions.append({
                 'sender': sender,
                 'recipient': recipient,
@@ -78,9 +84,20 @@ class Blockchain(object):
         return self.last_block['index'] + 1
     
 
-    def verify_signature(self, sender, recipient, amount, signature):
-        # TODO: implement signature verification
-        return True
+    def verify_signature(self, sender, recipient, amount, method, signature):
+        # TODO: DSA verification
+
+        msg = {
+            'sender': sender,
+            'recipient': recipient,
+            'amount': amount
+        }
+
+        if method == 'RSA':
+            public_key = RSA.importKey(binascii.unhexlify(sender))
+            verifier = PKCS1_v1_5.new(public_key)
+            h = SHA.new(str(msg).encode('utf8'))
+            return verifier.verify(h, binascii.unhexlify(signature))
     
     
     @staticmethod
