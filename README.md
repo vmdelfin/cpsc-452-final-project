@@ -9,6 +9,7 @@ A simple implementation of a secure blockchain.
 
 ## Contributions
 * Arianne Arcebal - code and testing
+* Vanessa Delfin - testing and documentation
 
 ## Usage
 This program requires flask and foreman. See the Dependencies section for more details.
