@@ -2,12 +2,12 @@
 # 
 # References    blockchain - https://hackernoon.com/learn-blockchains-by-building-one-117428612f46
 #               DSA - https://www.di-mgt.com.au/public-key-crypto-discrete-logs-4-dsa.html
+#               DSA - https://www.dlitz.net/software/pycrypto/api/current/
 #               RSA - http://adilmoujahid.com/posts/2018/03/intro-blockchain-bitcoin-python/
 # 
 ##################################################################
 
 
-import hashlib
 import json
 import Crypto.Random
 import binascii
