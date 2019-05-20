@@ -69,10 +69,10 @@ class Blockchain(object):
         return block    
 
 
-    def new_transaction(self, sender, recipient, amount, method, signature):
+    def new_transaction(self, sender, recipient, amount, method, signature, public_key):
         # adds a new transaction to the list of transactions
 
-        if signature == None or self.verify_signature(sender, recipient, amount, method, signature):
+        if signature == None or self.verify_signature(sender, recipient, amount, method, signature, public_key):
             self.current_transactions.append({
                 'sender': sender,
                 'recipient': recipient,
@@ -84,8 +84,7 @@ class Blockchain(object):
         return self.last_block['index'] + 1
     
 
-    def verify_signature(self, sender, recipient, amount, method, signature):
-        # TODO: DSA verification
+    def verify_signature(self, sender, recipient, amount, method, signature, public_key):
 
         msg = {
             'sender': sender,
@@ -98,6 +97,9 @@ class Blockchain(object):
             verifier = PKCS1_v1_5.new(public_key)
             h = SHA.new(str(msg).encode('utf8'))
             return verifier.verify(h, binascii.unhexlify(signature))
+        elif method == 'DSA':
+            h = SHA.new(str(msg).encode('utf8')).digest()
+            return public_key.verify(h, signature)
     
     
     @staticmethod
